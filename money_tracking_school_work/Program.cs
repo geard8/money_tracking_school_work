@@ -1,12 +1,16 @@
 ﻿
 using money_tracking_school_work;
-using System.Diagnostics;
 
-//MoneyBudget test = new MoneyBudget(); // TEST CODE
+string fileName = "budget_list.xml"; // Name of file, that then created can be found at "money_tracking_school_work\bin\Debug\net8.0" from project folder.
 
-//MoneyBudget.ShowBudgetList(); // TEST CODE
-
-// TODO add restore MoneyBudget.ShowBudgetList by load from file that is used then to save when quit this program.
+try
+{
+    MoneyBudget.BudgetList = ObjectFileManger.LoadViaDataContractSerialization<List<MoneyBudget>>(fileName); // load file
+}
+catch (Exception)
+{
+    Console.WriteLine("No save file found. One will be created with all budget entry then quiting this program.");
+}
 
 ConsoleKeyInfo cki; // used to store key pressed by the user
 
@@ -23,7 +27,7 @@ while (true)
     // Q quit and save
     if (cki.Key == ConsoleKey.Q)
     {
-        // TODO add save to file.
+        ObjectFileManger.SaveViaDataContractSerialization(MoneyBudget.BudgetList, fileName); // save file
         break;
     }
     // A create a new MoneyBudget.

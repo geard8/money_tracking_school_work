@@ -1,15 +1,22 @@
 ﻿
+using System.Runtime.Serialization;
+
 namespace money_tracking_school_work
 {
 
     // MoneyBudget is used to track money budget by incomes and expenses.
+    [DataContract]
     internal class MoneyBudget
     {
-
+        [DataMember]
         private string title = "No title"; // title of incomes or expenses.
+        [DataMember]
         private bool isIncome = true; // isIncome bool is income if true and expense if false.
+        [DataMember]
         private string isIncomeStr = "income"; // isIncomeStr is string of income or expense based of and reflect isIncome. Used in consol output to user.
+        [DataMember]
         private long amount = 0; // amount of incomes or expenses.
+        [DataMember]
         private int month = 0; // month of incomes or expenses. Can only be 1-12 exept 0 that mean unspecified or unknown month. 
         private static int maxLength = 20; // max lenght for string input. Used for title.
         static public List<MoneyBudget> BudgetList { get; set; } = [];
