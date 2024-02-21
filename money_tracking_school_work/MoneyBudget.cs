@@ -14,9 +14,17 @@ namespace money_tracking_school_work
         private static int maxLength = 25; // max lenght for string input. Used for title.
         static public List<MoneyBudget> BudgetList { get; set; } = [];
 
+        /* Constructor for creating new MoneyBudget and add it to BudgetList.
+         * This is done by using set from properties what get input from user to set the values, making the part after = meaningless when used as 
+         * long as it match the data type to avoid errors.
+         * 
+         * NOTE: I used this way to experiment this what can be done with set from properties. And as it work well i have choice to leave 
+         * it this way instead of refactoring to handle input from user with method and send that into a more traditional use of set with properties.
+         * This is so i can use it as part of my pressentation share that it can be done this way, even if it is not the most tradiational way, to show 
+         * that there can often be intressting alternat way to solva problem with code.
+         */
         public MoneyBudget()
         {
-            // TODO ASK teacher if i can leave my testing set method or if i shall make it more probely with by creating set methods instead of set from property.
             Title = "user input"; // after = do not matter as input form user will be used instead as part of Title set.
             IsIncome = true; // after = do not matter as input form user will be used instead as part of IsIncome set.
             Amount = 1; // after = do not matter as input form user will be used instead as part of Amount set.
