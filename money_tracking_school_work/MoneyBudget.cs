@@ -9,9 +9,9 @@ namespace money_tracking_school_work
         private string title = "No title"; // title of incomes or expenses.
         private bool isIncome = true; // isIncome bool is income if true and expense if false.
         private string isIncomeStr = "income"; // isIncomeStr is string of income or expense based of and reflect isIncome. Used in consol output to user.
-        private int amount = 0; // amount of incomes or expenses.
+        private long amount = 0; // amount of incomes or expenses.
         private int month = 0; // month of incomes or expenses. Can only be 1-12 exept 0 that mean unspecified or unknown month. 
-        private static int maxLength = 25; // max lenght for string input. Used for title.
+        private static int maxLength = 20; // max lenght for string input. Used for title.
         static public List<MoneyBudget> BudgetList { get; set; } = [];
 
         /* Constructor for creating new MoneyBudget and add it to BudgetList.
@@ -77,7 +77,13 @@ namespace money_tracking_school_work
             }
         }
 
-        public int Amount
+        // GetBudgetTypeStr method that return string of "Income" or "Expense" based on IsIncome.
+        public string GetBudgetTypeStr ()
+        {
+            return IsIncome ? "Income" : "Expense";
+        }
+
+        public long Amount
         {
             get { return amount; }
             // set amount by input from user.
@@ -88,7 +94,7 @@ namespace money_tracking_school_work
                 {
                     Console.Write($"What large amount is this {isIncomeStr} for: ");
                     string newAmountStr = Console.ReadLine();
-                    if (!int.TryParse(newAmountStr, out amount))
+                    if (!long.TryParse(newAmountStr, out amount))
                     {
                         Display.DisplayColorMsg("Not a valid price. Exemple of valid price is: 7 or 995000", "red");
                     }
@@ -126,6 +132,34 @@ namespace money_tracking_school_work
                     }
                 }
                 Console.WriteLine(); // For better spacing and readability 
+            }
+        }
+
+        static public void ShowBudgetList()
+        {
+            int padRightAmount = 22; // Amount of Right padding used when showing BudgetList
+            var sortedBudgetList = BudgetList.OrderBy(x => x.Month).ThenBy(x => x.IsIncome).ThenBy(x => x.Amount); // sort BudgetList by Month, IsIncome then Amount
+
+            Console.WriteLine("-----------------------------------------------------------------------------------------------------");
+            Console.WriteLine(
+                "Title".PadRight(padRightAmount) +
+                "Month".PadRight(padRightAmount) +
+                "Income/Expense".PadRight(padRightAmount) +
+                "Amount".PadRight(padRightAmount)   
+                );
+            Console.WriteLine("-----------------------------------------------------------------------------------------------------");
+
+            foreach (MoneyBudget budgetEntry in sortedBudgetList)
+            {
+                string color = budgetEntry.IsIncome ? "green" : "red"; // color to write out budgetEntry in will be green for income and red for expense
+
+                // write out info for budgetEntry
+                Display.DisplayColorMsg(
+                budgetEntry.Title.PadRight(padRightAmount) +
+                budgetEntry.Month.ToString().PadRight(padRightAmount) +
+                budgetEntry.GetBudgetTypeStr().PadRight(padRightAmount) +
+                budgetEntry.Amount.ToString().PadRight(padRightAmount)
+                , color);
             }
         }
     }
