@@ -15,6 +15,8 @@ while (true)
 {
     Console.WriteLine("- press \"A\": To create a budget entry");
     Console.WriteLine("- press \"B\": To show list of all budget entry");
+    Console.WriteLine("- press \"C\": To show list of income budget entry");
+    Console.WriteLine("- press \"D\": To show list of expense budget entry");
     Console.WriteLine("- press \"Q\": To save and quit");
     cki = Console.ReadKey();
     Console.WriteLine();
@@ -33,5 +35,15 @@ while (true)
     else if(cki.Key == ConsoleKey.B)
     {
         MoneyBudget.ShowBudgetList();
+    }
+    // C show all MoneyBudget to user
+    else if (cki.Key == ConsoleKey.C)
+    {
+        MoneyBudget.ShowBudgetList(true);
+    }
+    // D show all MoneyBudget to user
+    else if (cki.Key == ConsoleKey.D)
+    {
+        MoneyBudget.ShowBudgetList(false);
     }
 }

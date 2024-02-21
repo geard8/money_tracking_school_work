@@ -135,10 +135,27 @@ namespace money_tracking_school_work
             }
         }
 
-        static public void ShowBudgetList()
+        // ShowBudgetList show list of BudgetList.
+        // If IsIncomeFilter is null show all.
+        // If IsIncomeFilter is true show only income.
+        // If IsIncomeFilter is false show only expense.
+        static public void ShowBudgetList( bool? IsIncomeFilter = null)
         {
             int padRightAmount = 22; // Amount of Right padding used when showing BudgetList
             var sortedBudgetList = BudgetList.OrderBy(x => x.Month).ThenBy(x => x.IsIncome).ThenBy(x => x.Amount); // sort BudgetList by Month, IsIncome then Amount
+
+            // if IsIncomeFilter is true then overwrite sortedBudgetList to filter so only income will show.
+            if (IsIncomeFilter is true) 
+            {
+                //filter only income and sort BudgetList by Month, IsIncome then Amount
+                sortedBudgetList = BudgetList.Where(x => x.IsIncome == true).OrderBy(x => x.Month).ThenBy(x => x.IsIncome).ThenBy(x => x.Amount);
+            }
+            // if IsIncomeFilter is false then overwrite sortedBudgetList to filter so only expense will show.
+            else if (IsIncomeFilter is false)
+            {
+                //filter only expense and sort BudgetList by Month, IsIncome then Amount
+                sortedBudgetList = BudgetList.Where(x => x.IsIncome == false).OrderBy(x => x.Month).ThenBy(x => x.IsIncome).ThenBy(x => x.Amount);
+            }
 
             Console.WriteLine("-----------------------------------------------------------------------------------------------------");
             Console.WriteLine(
