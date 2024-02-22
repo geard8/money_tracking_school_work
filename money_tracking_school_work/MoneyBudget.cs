@@ -173,9 +173,12 @@ namespace money_tracking_school_work
                 );
             Console.WriteLine("-----------------------------------------------------------------------------------------------------");
 
+            long totalBudget = 0;
+
             foreach (MoneyBudget budgetEntry in sortedBudgetList)
             {
                 string color = budgetEntry.IsIncome ? "green" : "red"; // color to write out budgetEntry in will be green for income and red for expense
+                totalBudget = budgetEntry.IsIncome ? totalBudget + budgetEntry.Amount : totalBudget - budgetEntry.Amount;
 
                 // write out info for budgetEntry
                 Display.DisplayColorMsg(
@@ -185,6 +188,16 @@ namespace money_tracking_school_work
                 budgetEntry.Amount.ToString().PadRight(padRightAmount)
                 , color);
             }
+
+            if(IsIncomeFilter is null) {
+                Console.WriteLine("Total budget balance: " +  totalBudget);
+            }
+            else 
+            {
+                string budgetType = (bool)IsIncomeFilter ? "income" : "expense";
+                Console.WriteLine($"Total budget {budgetType}: " + totalBudget); 
+            }
+            Console.WriteLine();
         }
     }
 }
