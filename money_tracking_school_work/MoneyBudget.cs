@@ -1,4 +1,6 @@
 ﻿
+using System;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace money_tracking_school_work
@@ -146,11 +148,10 @@ namespace money_tracking_school_work
         // If IsIncomeFilter is null show all.
         // If IsIncomeFilter is true show only income.
         // If IsIncomeFilter is false show only expense.
-        static public void ShowBudgetList( bool? IsIncomeFilter = null)
+        static public IOrderedEnumerable<MoneyBudget> ShowBudgetList( bool? IsIncomeFilter = null, bool numberedList = false)
         {
             int padRightAmount = 22; // Amount of Right padding used when showing BudgetList
             var sortedBudgetList = BudgetList.OrderBy(x => x.Month).ThenBy(x => x.IsIncome).ThenBy(x => x.Amount); // sort BudgetList by Month, IsIncome then Amount
-
             // if IsIncomeFilter is true then overwrite sortedBudgetList to filter so only income will show.
             if (IsIncomeFilter is true) 
             {
@@ -165,6 +166,8 @@ namespace money_tracking_school_work
             }
 
             Console.WriteLine("-----------------------------------------------------------------------------------------------------");
+            // write out category of the list
+            if (numberedList) { Console.Write("Number".PadRight(padRightAmount)); } // if numberedList is true include Number category in list
             Console.WriteLine(
                 "Title".PadRight(padRightAmount) +
                 "Month".PadRight(padRightAmount) +
@@ -175,21 +178,28 @@ namespace money_tracking_school_work
 
             long totalBudget = 0;
 
-            foreach (MoneyBudget budgetEntry in sortedBudgetList)
+            //foreach (MoneyBudget budgetEntry in sortedBudgetList)
+            foreach (var(budgetEntry, index) in sortedBudgetList.WithIndex())
             {
                 string color = budgetEntry.IsIncome ? "green" : "red"; // color to write out budgetEntry in will be green for income and red for expense
                 totalBudget = budgetEntry.IsIncome ? totalBudget + budgetEntry.Amount : totalBudget - budgetEntry.Amount;
 
-                // write out info for budgetEntry
-                Display.DisplayColorMsg(
-                budgetEntry.Title.PadRight(padRightAmount) +
-                budgetEntry.Month.ToString().PadRight(padRightAmount) +
-                budgetEntry.GetBudgetTypeStr().PadRight(padRightAmount) +
-                budgetEntry.Amount.ToString().PadRight(padRightAmount)
-                , color);
+                // prepare string of MoneyBudget to write out in the list
+                string budgetRowStr = "";
+                if (numberedList) { budgetRowStr += (index+1).ToString().PadRight(padRightAmount); } // if numberedList is true include Number in list
+                budgetRowStr += (
+                    budgetEntry.Title.PadRight(padRightAmount) +
+                    budgetEntry.Month.ToString().PadRight(padRightAmount) +
+                    budgetEntry.GetBudgetTypeStr().PadRight(padRightAmount) +
+                    budgetEntry.Amount.ToString().PadRight(padRightAmount)
+                );
+
+                // write out string for MoneyBudget in list of MoneyBudget
+                Display.DisplayColorMsg(budgetRowStr, color);
             }
 
-            if(IsIncomeFilter is null) {
+            // write out total sum of budget. Variations for all, only income or only expense.
+            if (IsIncomeFilter is null) {
                 Console.WriteLine("Total budget balance: " +  totalBudget);
             }
             else 
@@ -197,7 +207,187 @@ namespace money_tracking_school_work
                 string budgetType = (bool)IsIncomeFilter ? "income" : "expense";
                 Console.WriteLine($"Total budget {budgetType}: " + totalBudget); 
             }
-            Console.WriteLine();
+
+            Console.WriteLine(); // For better spacing and readability 
+            return sortedBudgetList;
+        }
+
+        // selectMoneyBudget returns MoneyBudget chosen by user.
+        static private MoneyBudget selectMoneyBudget(IOrderedEnumerable<MoneyBudget> manageBudgetList)
+        {
+            // get user input for choice of MoneyBudget
+            while (true)
+            {
+                Console.Write("choice one budget entry by its number: ");
+                string newMoneyBudgetStr = Console.ReadLine(); // get user input for choice of MoneyBudget by choosing the MoneyBudget number.
+                int MoneyBudgetInt;
+                if (!int.TryParse(newMoneyBudgetStr, out MoneyBudgetInt))
+                {
+                    Display.DisplayColorMsg("Not a valid number. Exemple of valid number is: 2 or 59", "red");
+                }
+                else if (MoneyBudgetInt >= 1 && MoneyBudgetInt <= manageBudgetList.Count())
+                {
+                    Console.WriteLine(); // For better spacing and readability 
+
+                    /* can't use manageBudgetList[MoneyBudgetInt] to get the right MoneyBudget in list.
+                     * So instead will have to loop and find it manually.
+                     */
+                    int idx = 1;
+                    foreach (MoneyBudget moneyBudget in manageBudgetList)
+                    {
+                        if (idx == MoneyBudgetInt)
+                            return moneyBudget;
+                        idx++;
+                    }
+                }
+                else
+                {
+                    Display.DisplayColorMsg("Not a valid choice, choose a number in the list", "red");
+                }
+            }
+        }
+
+        // user can manage MoneyBudget by changing title, amount or month or delete a MoneyBudget
+        static public void ManageBudgetList()
+        {
+
+            ConsoleKeyInfo cki; // used to store key pressed by the user
+
+            // menu for edit and deleting MoneyBudget
+            while (true) // TODO user can edit and remove budget entries
+            {
+
+                IOrderedEnumerable<MoneyBudget> manageBudgetList = MoneyBudget.ShowBudgetList(null, true); // show list of all MoneyBudget list that is numbered
+
+                Console.WriteLine("- press \"A\": To change title of one budget entry ");
+                Console.WriteLine("- press \"B\": To change amount of one budget entry");
+                Console.WriteLine("- press \"C\": To change month of one budget entry");
+                Console.WriteLine("- press \"D\": To remove one budget entry");
+                Console.WriteLine("- press \"Q\": To be done with managing budget entry");
+                cki = Console.ReadKey();
+                Console.WriteLine(); // For better spacing and readability 
+                // Q quit and save
+                if (cki.Key == ConsoleKey.Q)
+                {
+                    break;
+                }
+
+                // A user change title of a chosen MoneyBudget
+                else if (cki.Key == ConsoleKey.A)
+                {
+                    while (true)
+                    {
+                        MoneyBudget moneyBudget = selectMoneyBudget(manageBudgetList); // user select one MoneyBudget
+                        // Ask user if they want to change
+                        Console.WriteLine("Current budget entry title is " + moneyBudget.Title + " And you want to change it?");
+                        Console.WriteLine("- press \"Y\": For yes");
+                        Console.WriteLine("- press \"N\": For no");
+                        cki = Console.ReadKey();
+                        Console.WriteLine(); // For better spacing and readability 
+
+                        if (cki.Key == ConsoleKey.Y)
+                        {
+                            // user change title
+                            moneyBudget.Title = "new title"; // after = do not matter as input form user will be used instead as part of Title set.
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else if (cki.Key == ConsoleKey.N)
+                        {
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else { Display.DisplayColorMsg("Not a valid choice, press Y for yes or N for no", "red"); }
+                    }
+                }
+
+                // B user change amount of a chosen MoneyBudget
+                else if (cki.Key == ConsoleKey.B)
+                {
+                    while (true)
+                    {
+                        MoneyBudget moneyBudget = selectMoneyBudget(manageBudgetList); // user select one MoneyBudget
+                        // Ask user if they want to change
+                        Console.WriteLine("Current budget entry amount is " + moneyBudget.Amount + " And you want to change it?");
+                        Console.WriteLine("- press \"Y\": For yes");
+                        Console.WriteLine("- press \"N\": For no");
+                        cki = Console.ReadKey();
+                        Console.WriteLine(); // For better spacing and readability 
+
+                        if (cki.Key == ConsoleKey.Y)
+                        {
+                            // user change amount
+                            moneyBudget.Amount = 1; // after = do not matter as input form user will be used instead as part of Amount set.
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else if (cki.Key == ConsoleKey.N)
+                        {
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else { Display.DisplayColorMsg("Not a valid choice, press Y for yes or N for no", "red"); }
+                    }
+                }
+
+                // C user change month of a chosen MoneyBudget 
+                else if (cki.Key == ConsoleKey.C)
+                {
+                    while (true)
+                    {
+                        MoneyBudget moneyBudget = selectMoneyBudget(manageBudgetList); // user select one MoneyBudget
+                        // Ask user if they want to change
+                        Console.WriteLine("Current budget entry month is " + moneyBudget.Month + " And you want to change it?");
+                        Console.WriteLine("- press \"Y\": For yes");
+                        Console.WriteLine("- press \"N\": For no");
+                        cki = Console.ReadKey();
+                        Console.WriteLine(); // For better spacing and readability 
+
+                        if (cki.Key == ConsoleKey.Y)
+                        {
+                            // user change month
+                            moneyBudget.Month = 1; // after = do not matter as input form user will be used instead as part of Month set.
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else if (cki.Key == ConsoleKey.N)
+                        {
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else { Display.DisplayColorMsg("Not a valid choice, press Y for yes or N for no", "red"); }
+                    }
+                }
+
+                // D user remove a chosen MoneyBudget
+                else if (cki.Key == ConsoleKey.D)
+                {
+                    while(true)
+                    {
+                        MoneyBudget moneyBudget = selectMoneyBudget(manageBudgetList);// user select one MoneyBudget
+                        // Ask user if they want to remove the chosen MoneyBudget
+                        Console.WriteLine("You have chose budget entry with title " + moneyBudget.Title + " and you want to remove it?");
+                        Console.WriteLine("- press \"Y\": For yes");
+                        Console.WriteLine("- press \"N\": For no");
+                        cki = Console.ReadKey();
+                        Console.WriteLine(); // For better spacing and readability 
+
+                        if (cki.Key == ConsoleKey.Y)
+                        {
+                            // remove moneyBudget
+                            BudgetList.Remove(moneyBudget);
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else if (cki.Key == ConsoleKey.N)
+                        {
+                            Console.WriteLine(); // For better spacing and readability 
+                            break;
+                        }
+                        else { Display.DisplayColorMsg("Not a valid choice, press Y for yes or N for no", "red"); }
+                    }
+                }
+            }
         }
     }
 }
